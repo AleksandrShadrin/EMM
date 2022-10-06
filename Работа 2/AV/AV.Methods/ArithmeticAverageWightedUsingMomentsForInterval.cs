@@ -23,14 +23,15 @@ namespace AV.Methods
         {
             var newValues = values.Select(v =>
             {
-                if(v is ClosedInterval)
+                if (v is ClosedInterval)
                 {
-                    (v as ClosedInterval).LeftBoundary.Value = ((v as ClosedInterval).LeftBoundary.Value - A) / K;
-                    (v as ClosedInterval).RightBoundary.Value = ((v as ClosedInterval).RightBoundary.Value - A) / K;
-                } 
-                else if(v is OpenedInterval)
+                    var closedInterval = (v as ClosedInterval);
+                    return closedInterval.CloneWithNewBoundariesValues((closedInterval.LeftBoundary.Value - A) / K, (closedInterval.RightBoundary.Value - A) / K);
+                }
+                else if (v is OpenedInterval)
                 {
-                    (v as OpenedInterval).Boundary.Value = ((v as OpenedInterval).Boundary.Value - A) / K;
+                    var openedInterval = (v as OpenedInterval);
+                    return openedInterval.CloneWithNewBoundaryValue((openedInterval.Boundary.Value - A) / K);
                 }
 
                 return v;

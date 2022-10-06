@@ -20,7 +20,7 @@ namespace AV.Methods
         {
             if(values.Count() != _weights.Count())
             {
-                throw new WeightsCountDontEqualValuesCount(values.Count(), _weights.Count());
+                throw new WeightsCountDontEqualValuesCount(_weights.Count(), values.Count());
             }
 
             return Enumerable
