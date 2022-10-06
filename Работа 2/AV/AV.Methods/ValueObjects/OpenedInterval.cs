@@ -18,5 +18,18 @@
         public bool BoundedFromLeft()
             => !boundedFromRight;
 
+        public OpenedInterval CloneWithNewBoundaryValue(double value)
+        {
+            return new(Boundary with { Value = value }, boundedFromRight: boundedFromRight);
+        }
+
+        public override string ToString()
+        {
+            if (boundedFromRight)
+            {
+                return $"До {Boundary}";
+            }
+            return $"Больше {Boundary}";
+        }
     }
 }
