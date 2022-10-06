@@ -2,6 +2,7 @@
 using AV.Methods.Factories;
 using AV.Methods.ValueObjects;
 using ConsoleTableExt;
+using System.Linq;
 
 namespace AV.Presentation
 {
@@ -39,14 +40,25 @@ namespace AV.Presentation
             GarmonicWeightedAverageTest();
             WaitKeyPressAndCleanScreen();
 
+            Console.WriteLine("Числа для 8-го задания: \n");
+            MedianForDescreteTest();
+            WaitKeyPressAndCleanScreen();
+
+
+            Console.WriteLine("Числа для 9-го задания: \n");
+            MedianForIntervalTest();
+            WaitKeyPressAndCleanScreen();
+
             return Task.CompletedTask;
         }
 
         #region private methods
         private void ArithmeticAverageTest()
         {
+            var countOfValues = 25;
+
             var values = Enumerable
-                .Repeat(0, 25)
+                .Repeat(0, countOfValues)
                 .Select((_) =>
                 {
                     var number = GenerateNumberBetween(2, 10);
@@ -68,8 +80,9 @@ namespace AV.Presentation
 
         private void ArithmeticAverageWeightedDiscretTest()
         {
+            var countOfValues = 24;
             var values = Enumerable
-                .Repeat(0, 24)
+                .Repeat(0, countOfValues)
                 .Select((_) =>
                 {
                     var weight = randomGenerator.Next(2, 10);
@@ -99,7 +112,7 @@ namespace AV.Presentation
                 .ExportAndWriteLine();
 
             var averageEvaluator = new
-                ArithmeticAverageWeightedDiscret(
+                ArithmeticAverageWeightedDiscrete(
                     values
                             .Select(v => (Double)v.weight)
                             .ToList());
@@ -183,7 +196,8 @@ namespace AV.Presentation
                 .WithColumn("№", "Интервалы времени горения электроламп, час.", "Число электроламп, шт.")
                 .ExportAndWriteLine();
 
-            var averageEvaluator = new ArithmeticAverageWightedUsingMomentsForInterval(weights, A, K, k);
+            var averageEvaluator = new ArithmeticAverageWeightedUsingMomentsForInterval(weights, A, K, k);
+
             Console.WriteLine($"Взвешанная средняя арифмитическая с параметрами " +
                 $"A = {A}, K = {K}, k = {k} будет равна: {averageEvaluator.Calculate(values)}");
             Console.WriteLine($"Применив обратные преобразования средняя арифмитическая будет: {A + averageEvaluator.Calculate(values) * K}");
@@ -213,7 +227,7 @@ namespace AV.Presentation
                 .WithColumn("№", "Выпуск продукции по плану, млн.руб.", "Выполнение")
                 .ExportAndWriteLine();
 
-            var averageEvaluator = new ArithmeticAverageWeightedDiscret(weights);
+            var averageEvaluator = new ArithmeticAverageWeightedDiscrete(weights);
 
             Console.WriteLine($"Средний процент выполнения плана: {averageEvaluator.Calculate(values)}");
         }
@@ -270,6 +284,72 @@ namespace AV.Presentation
             var averageEvaluator = new GarmonicWeightedAverage(weights);
 
             Console.WriteLine($"Средняя себестоимость изделия: {averageEvaluator.Calculate(values)}");
+        }
+
+        private void MedianForDescreteTest()
+        {
+            var countOfValues = 15;
+
+            var weights = Enumerable
+                .Repeat(0, countOfValues)
+                .Select(_ => Convert.ToDouble(randomGenerator.Next(2, 20)))
+                .ToList();
+
+            var values = Enumerable
+                .Range(0, countOfValues)
+                .Select(n => Convert.ToDouble(100 + 20 * n))
+                .ToList();
+
+            var tableData =
+                Enumerable.Zip(values, weights, (v, w) => new List<Object> { v, w })
+                .Select((v, n)
+                    => v.Prepend(n + 1).ToList())
+                .ToList();
+
+            ConsoleTableBuilder
+                .From(tableData)
+                .WithColumn("№", "Месячная з/пл., руб.", "Число рабочих")
+                .ExportAndWriteLine();
+
+            var averageEvaluator = new MedianForDiscrete(weights);
+
+            Console.WriteLine($"Медиана: {averageEvaluator.Calculate(values)}");
+        }
+
+        private void MedianForIntervalTest()
+        {
+            var closedIntervalFactory = new ClosedIntervalFactory();
+
+            var countOfValues = 12;
+
+            var weights = Enumerable
+                .Repeat(0, countOfValues)
+                .Select(_ => Convert.ToDouble(randomGenerator.Next(1, 30)))
+                .ToList();
+
+            var values = Enumerable
+                .Range(0, countOfValues)
+                .Select(n =>
+                    closedIntervalFactory
+                    .CreateClosedIntervalWithRightInclude(
+                        Convert.ToDouble(100 + 100 * n),
+                        Convert.ToDouble(100 + 100 * (n + 1))))
+                .ToList();
+
+            var tableData =
+                Enumerable.Zip(values, weights, (v, w) => new List<Object> { v, w })
+                .Select((v, n)
+                    => v.Prepend(n + 1).ToList())
+                .ToList();
+
+            ConsoleTableBuilder
+                .From(tableData)
+                .WithColumn("№", "Группы предприятий по числу рабочих", "Число предприятий")
+                .ExportAndWriteLine();
+
+            var averageEvaluator = new MedianForInterval(weights);
+
+            Console.WriteLine($"Медиана в интервальном ряду: {averageEvaluator.Calculate(values)}");
         }
 
         private double GenerateNumberBetween(double start, double end)
