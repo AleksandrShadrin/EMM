@@ -1,9 +1,14 @@
 ﻿namespace AV.Methods
 {
-    public class GarmonicWeightedAverage : IAverageDiscretEvaluator
+    public class GarmonicWeightedAverage : IAverageDiscreteEvaluator
     {
-        private readonly IEnumerable<double> _weights;
+        private IEnumerable<double> _weights;
         public GarmonicWeightedAverage(IEnumerable<double> weights)
+        {
+            _weights = weights;
+        }
+
+        public void SetWeights(IEnumerable<double> weights)
         {
             _weights = weights;
         }

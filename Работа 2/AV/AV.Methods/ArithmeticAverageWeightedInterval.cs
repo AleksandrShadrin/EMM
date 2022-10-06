@@ -5,11 +5,11 @@ namespace AV.Methods
 {
     public class ArithmeticAverageWeightedInterval : IAverageIntervalEvaluator
     {
-        private readonly ArithmeticAverageWeightedDiscret averageWeightedDiscret;
+        private readonly ArithmeticAverageWeightedDiscrete averageWeightedDiscret;
 
         public ArithmeticAverageWeightedInterval(List<double> weights)
         {
-            averageWeightedDiscret = new ArithmeticAverageWeightedDiscret(weights);
+            averageWeightedDiscret = new ArithmeticAverageWeightedDiscrete(weights);
         }
 
         public void SetWeights(IEnumerable<double> weights)
