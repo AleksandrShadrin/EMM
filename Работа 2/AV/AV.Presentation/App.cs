@@ -1,4 +1,6 @@
 ﻿using AV.Methods;
+using AV.Methods.Factories;
+using AV.Methods.ValueObjects;
 using ConsoleTableExt;
 
 namespace AV.Presentation
@@ -11,13 +13,22 @@ namespace AV.Presentation
         {
             Console.WriteLine("Числа для 1-го задания: \n");
             ArithmeticAverageTest();
-            Console.ReadKey();
-            Console.Clear();
+            WaitKeyPressAndCleanScreen();
             Console.WriteLine("Числа для 2-го задания: \n");
             ArithmeticAverageWeightedDiscretTest();
+            WaitKeyPressAndCleanScreen();
+            Console.WriteLine("Числа для 3-го задания: \n");
+            ArithmeticAverageWeightedIntervalTest();
+            WaitKeyPressAndCleanScreen();
+            Console.WriteLine("Числа для 4-го задания: \n");
+            ArithmeticAverageWeightedIntervalUsingMomentsTest();
+            WaitKeyPressAndCleanScreen();
+            Console.WriteLine("Числа для 5-го задания: \n");
+            AveragePercentByPlanTest();
             return Task.CompletedTask;
         }
 
+        #region private methods
         private void ArithmeticAverageTest()
         {
             var values = Enumerable
@@ -31,13 +42,13 @@ namespace AV.Presentation
             ConsoleTableBuilder
                 .From(values.Select((v, n) =>
                 {
-                    return new List<Object> { n, v };
+                    return new List<Object> { n + 1, v };
                 }).ToList())
                 .WithColumn("№", "Выпуск")
                 .ExportAndWriteLine();
 
             var averageEvaluator = new ArithmeticAverage();
-            Console.WriteLine(new String('-', 40));
+
             Console.WriteLine($"Средний объем выпуска продукции на один завод: {averageEvaluator.Calculate(values)}");
         }
 
@@ -82,14 +93,127 @@ namespace AV.Presentation
             var average = averageEvaluator
                 .Calculate(
                     values.Select((v) =>
-                            (Double)v.numberOfProduct.Sum()).ToList());
+                        (Double)v.numberOfProduct.Sum()).ToList());
 
             Console.WriteLine($"В среднем за смену один рабочий производит {average}");
+        }
+
+        private void ArithmeticAverageWeightedIntervalTest()
+        {
+            var closedIntervalFactory = new ClosedIntervalFactory();
+            var openedIntervalFactory = new OpenedIntervalFactory();
+
+            var countOfValues = 10;
+
+            var values = new List<BaseInterval>();
+
+            values.Add(openedIntervalFactory.CreateOpenedIntervalWithRightIncludedBoundary(5));
+
+            Enumerable.Range(1, countOfValues - 2).ToList().ForEach(v =>
+                values.Add(closedIntervalFactory
+                .CreateClosedIntervalWithRightInclude(5 + (v - 1) * 2, 5 + v * 2)));
+
+            values.Add(openedIntervalFactory.CreateOpenedIntervalWithLeftExcludedBoundary(countOfValues * 2 + 1));
+
+            var weights = Enumerable
+                .Repeat(0, countOfValues)
+                .Select(v => Convert.ToDouble(randomGenerator.Next(5, 30)))
+                .ToList();
+
+            var tableData = Enumerable.Zip(weights, values, (f, s) =>
+            {
+                return new List<Object> { f, s };
+            })
+                .Select((v, n) => v.Prepend(n + 1).ToList())
+                .ToList();
+
+            ConsoleTableBuilder
+                .From(tableData)
+                .WithColumn("№", "Число рабочих", "Количество произведенной продукции за смену, шт.")
+                .ExportAndWriteLine();
+
+            var averageEvaluator = new ArithmeticAverageWeightedInterval(weights);
+            Console.WriteLine($"Средняя выработка продукции одним рабочим {averageEvaluator.Calculate(values)}");
+        }
+
+        private void ArithmeticAverageWeightedIntervalUsingMomentsTest()
+        {
+            var closedIntervalFactory = new ClosedIntervalFactory();
+
+            var A = 1300;
+            var K = 200;
+            var k = 10;
+            var countOfValues = 16;
+
+            var values = new List<BaseInterval>();
+            Enumerable
+                .Range(0, countOfValues)
+                .ToList()
+                .ForEach(v =>
+                    values.Add(closedIntervalFactory.CreateClosedIntervalWithRightInclude(800 + v * 200, 800 + (v + 1) * 200)));
+
+            var weights = Enumerable
+                .Repeat(0, countOfValues)
+                .Select(v => Convert.ToDouble(randomGenerator.Next(20, 200)))
+                .ToList();
+
+            var tableData = Enumerable.Zip(weights, values, (f, s) =>
+            {
+                return new List<Object> { f, s };
+            })
+                .Select((v, n) => v.Prepend(n + 1).ToList())
+                .ToList();
+
+            ConsoleTableBuilder
+                .From(tableData)
+                .WithColumn("№", "Интервалы времени горения электроламп, час.", "Число электроламп, шт.")
+                .ExportAndWriteLine();
+
+            var averageEvaluator = new ArithmeticAverageWightedUsingMomentsForInterval(weights, A, K, k);
+            Console.WriteLine($"Взвешанная средняя арифмитическая с параметрами " +
+                $"A = {A}, K = {K}, k = {k} будет равна: {averageEvaluator.Calculate(values)}");
+            Console.WriteLine($"Применив обратные преобразования средняя арифмитическая будет: {A + averageEvaluator.Calculate(values) * K}");
+        }
+        // Расчет средней арифмической из групповых средних
+        private void AveragePercentByPlanTest()
+        {
+            var countOfValues = 20;
+            var weights = Enumerable
+                .Repeat(0, countOfValues)
+                .Select(_ => Convert.ToDouble(randomGenerator.Next(15, 50)))
+                .ToList();
+
+            var values = Enumerable
+                .Repeat(0, countOfValues)
+                .Select(_ => GenerateNumberBetween(-10, 10) + 100)
+                .ToList();
+
+            var tableData = Enumerable
+                .Zip(weights, values,
+                    (w, v) => new List<Object> { w, v })
+                .Select((v, n) => v.Prepend(n + 1).ToList())
+                .ToList();
+
+            ConsoleTableBuilder
+                .From(tableData)
+                .WithColumn("№", "Выпуск продукции по плану, млн.руб.", "Выполнение")
+                .ExportAndWriteLine();
+
+            var averageEvaluator = new ArithmeticAverageWeightedDiscret(weights);
+
+            Console.WriteLine($"Средний процент выполнения плана: {averageEvaluator.Calculate(values)}");
         }
 
         private double GenerateNumberBetween(double start, double end)
         {
             return start + randomGenerator.NextDouble() * (end - start);
         }
+
+        private void WaitKeyPressAndCleanScreen()
+        {
+            Console.ReadKey();
+            Console.Clear();
+        }
+        #endregion
     }
 }
