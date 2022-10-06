@@ -14,17 +14,31 @@ namespace AV.Presentation
             Console.WriteLine("Числа для 1-го задания: \n");
             ArithmeticAverageTest();
             WaitKeyPressAndCleanScreen();
+
             Console.WriteLine("Числа для 2-го задания: \n");
             ArithmeticAverageWeightedDiscretTest();
             WaitKeyPressAndCleanScreen();
+
             Console.WriteLine("Числа для 3-го задания: \n");
             ArithmeticAverageWeightedIntervalTest();
             WaitKeyPressAndCleanScreen();
+
             Console.WriteLine("Числа для 4-го задания: \n");
             ArithmeticAverageWeightedIntervalUsingMomentsTest();
             WaitKeyPressAndCleanScreen();
+
             Console.WriteLine("Числа для 5-го задания: \n");
             AveragePercentByPlanTest();
+            WaitKeyPressAndCleanScreen();
+
+            Console.WriteLine("Числа для 6-го задания: \n");
+            GarmonicCommonAverageTest();
+            WaitKeyPressAndCleanScreen();
+
+            Console.WriteLine("Числа для 7-го задания: \n");
+            GarmonicWeightedAverageTest();
+            WaitKeyPressAndCleanScreen();
+
             return Task.CompletedTask;
         }
 
@@ -202,6 +216,60 @@ namespace AV.Presentation
             var averageEvaluator = new ArithmeticAverageWeightedDiscret(weights);
 
             Console.WriteLine($"Средний процент выполнения плана: {averageEvaluator.Calculate(values)}");
+        }
+
+        private void GarmonicCommonAverageTest()
+        {
+            var countOfValues = 24;
+
+            var values = Enumerable
+                .Repeat(0, countOfValues)
+                .Select(_ => Convert.ToDouble(randomGenerator.Next(10, 20)))
+                .ToList();
+
+            var tableData = values
+                .Select((v, n)
+                    => new List<Object> { n + 1, v })
+                .ToList();
+
+            ConsoleTableBuilder
+                .From(tableData)
+                .WithColumn("№", "Время обточки, мин.")
+                .ExportAndWriteLine();
+
+            var averageEvaluator = new GarmonicCommonAverage();
+
+            Console.WriteLine($"Среднее время, затрачиваемое на обточку одной детали: {averageEvaluator.Calculate(values)}");
+        }
+
+        private void GarmonicWeightedAverageTest()
+        {
+            var countOfValues = 15;
+
+            var weights = Enumerable
+                .Repeat(0, countOfValues)
+                .Select(_ => Convert.ToDouble(randomGenerator.Next(100, 600)))
+                .ToList();
+
+            var values = Enumerable
+                .Repeat(0, countOfValues)
+                .Select(_ => Convert.ToDouble(randomGenerator.Next(13, 30)))
+                .ToList();
+
+            var tableData =
+                Enumerable.Zip(values, weights, (v, w) => new List<Object> { w, v })
+                .Select((v, n)
+                    => v.Prepend(n + 1).ToList())
+                .ToList();
+
+            ConsoleTableBuilder
+                .From(tableData)
+                .WithColumn("№", "Издержки производства, тыс. руб.", "Себестоимость единицы продукции, руб.")
+                .ExportAndWriteLine();
+
+            var averageEvaluator = new GarmonicWeightedAverage(weights);
+
+            Console.WriteLine($"Средняя себестоимость изделия: {averageEvaluator.Calculate(values)}");
         }
 
         private double GenerateNumberBetween(double start, double end)
