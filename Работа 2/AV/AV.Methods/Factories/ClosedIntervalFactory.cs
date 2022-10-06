@@ -2,7 +2,7 @@
 
 namespace AV.Methods.Factories
 {
-    public class ClosedClosedIntervalFactory
+    public class ClosedIntervalFactory
     {
         public BaseInterval CreateClosedIntervalWithLeftInclude(double left, double right)
         {
