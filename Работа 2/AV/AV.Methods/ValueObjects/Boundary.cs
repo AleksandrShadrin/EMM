@@ -1,9 +1,9 @@
 ﻿namespace AV.Methods.ValueObjects
 {
-    public class Boundary
+    public record Boundary
     {
-        public bool Include { get; set; }
-        public double Value { get; set; }
+        public bool Include { get; init; }
+        public double Value { get; init; }
 
         public Boundary(double value, bool include = false)
         {
