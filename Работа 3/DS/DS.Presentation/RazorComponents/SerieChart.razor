@@ -1,0 +1,93 @@
+﻿@using DS.SeriesAnalysis.Constants
+@inject ISeriesAnalyzerService _analyzerService
+
+<div class="row align-content-center">
+    <div class="row col-6 align-content-center"><h4 class="text-center text-lg-end m-0">Trend is exist ? @(trendExist)</h4></div>
+    <div class="row col-6 justify-content-end"><button disabled="@trendIsAdded" class="btn btn-primary ms-auto" onclick="@(async () => await AddTrend())">Add Trend</button></div>
+</div>
+<LineChart @ref="lineChart" TItem="PointXY" Options="@chartOptions" />
+
+@code {
+    [Parameter]
+    public string Label { get; set; } = String.Empty;
+    [Parameter]
+    public Serie Serie { get; set; }
+    [Parameter]
+    public EquationType EquationType { get; set; }
+
+    private bool isFirstRender = true;
+    private bool trendIsAdded = false;
+    private bool trendExist = false;
+    private LineChart<PointXY> lineChart;
+    List<string> backgroundColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 0.2f), ChartColor.FromRgba(54, 162, 235, 0.2f), ChartColor.FromRgba(255, 206, 86, 0.2f), ChartColor.FromRgba(75, 192, 192, 0.2f), ChartColor.FromRgba(153, 102, 255, 0.2f), ChartColor.FromRgba(255, 159, 64, 0.2f) };
+    List<string> borderColors = new List<string> { ChartColor.FromRgba(255, 99, 132, 1f), ChartColor.FromRgba(54, 162, 235, 1f), ChartColor.FromRgba(255, 206, 86, 1f), ChartColor.FromRgba(75, 192, 192, 1f), ChartColor.FromRgba(153, 102, 255, 1f), ChartColor.FromRgba(255, 159, 64, 1f) };
+
+
+    LineChartOptions chartOptions = new()
+        {
+            Parsing = new ChartParsing
+            {
+                XAxisKey = "x",
+                YAxisKey = "y",
+            },
+            Scales = new ChartScales
+            {
+                X = new ChartAxis
+                {
+                    Type = "linear"
+                },
+            }
+        };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (isFirstRender)
+        {
+            isFirstRender = false;
+
+            await lineChart.Clear();
+            await lineChart.AddDataSet(GenerateLineChartDataset());
+
+            _analyzerService.SetSerie(Serie);
+            _analyzerService.Fit(Serie, EquationType);
+            trendExist = _analyzerService.TrendExist();
+        }
+    }
+
+    private LineChartDataset<PointXY> GenerateLineChartDataset()
+    {
+        return new()
+            {
+                BackgroundColor = backgroundColors[1],
+                BorderColor = borderColors[0],
+                Label = Label,
+                Data = Serie.X.Zip(Serie.Y, (x, y) => new PointXY(x, y)).ToList(),
+                PointRadius = 3,
+                Fill = false,
+            };
+    }
+
+    private async Task AddTrend()
+    {
+        if (trendIsAdded)
+            return;
+
+        trendIsAdded = true;
+        var trend = _analyzerService.GetTrend();
+
+        LineChartDataset<PointXY> lineChartDataset = new()
+            {
+                BackgroundColor = backgroundColors[1],
+                BorderColor = borderColors[2],
+                Label = "Trend",
+                Data = trend.X.Zip(trend.Y, (x, y) => new PointXY(x, y)).ToList(),
+                BorderWidth = 4,
+                PointRadius = 3,
+                Fill = false,
+            };
+
+        await lineChart.AddDatasetsAndUpdate(lineChartDataset);
+    }
+
+    private record PointXY(double X, double Y);
+}
