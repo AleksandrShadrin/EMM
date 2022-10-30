@@ -8,4 +8,5 @@ public interface ISeriesAnalyzerService
     Serie GetTrend();
     bool TrendExist();
     void SetSerie(Serie series);
+    double GetF();
 }

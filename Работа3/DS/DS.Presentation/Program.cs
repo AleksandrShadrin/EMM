@@ -1,11 +1,11 @@
 using Blazorise;
 using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
+using DS.Presentation;
+using DS.Presentation.Services;
+using DS.SeriesAnalysis.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using DS.Presentation;
-using DS.SeriesAnalysis.Services;
-using DS.Presentation.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -20,5 +20,7 @@ builder.Services.AddSingleton<ISeriesGenerator>(_ =>
 {
     return new SeriesGeneratorWithNoise(new Random(123));
 });
+
+builder.Services.AddSingleton<ISeriesSmoothingService, SeriesSmoothingService>();
 
 await builder.Build().RunAsync();

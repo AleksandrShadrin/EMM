@@ -18,4 +18,10 @@
     <ProjectReference Include="..\DS.SeriesAnalysis\DS.SeriesAnalysis.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="wwwroot\Data\Microsoft_Stock2.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

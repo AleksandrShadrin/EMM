@@ -13,7 +13,7 @@ public class SeriesAnalyzerService : ISeriesAnalyzerService
     public SeriesAnalyzerService(Serie serie)
     {
         _serie = serie;
-        _medianCalculator = new AV.Methods.MedianForDiscrete(_serie.Y.Select(_ => 1d));
+        _medianCalculator = new MedianForDiscrete(_serie.Y.Select(_ => 1d));
     }
 
     public SeriesAnalyzerService()
@@ -47,18 +47,40 @@ public class SeriesAnalyzerService : ISeriesAnalyzerService
                || NumberOfSeries() < averageSeries - stdofSeries;
     }
 
-    public void SetSerie(Serie series)
+    public void SetSerie(Serie serie)
     {
-        _serie = series;
-        _medianCalculator = new AV.Methods.MedianForDiscrete(_serie.Y.Select(_ => 1d));
+        _serie = serie;
+        _medianCalculator = new MedianForDiscrete(_serie.Y.Select(_ => 1d));
+    }
+
+    public double GetF()
+    {
+        var n = _serie.X.Count();
+        var p = 0.95;
+
+        var mean_y = _serie.Y.Sum() / n;
+
+        var sigma_fact = _serie.Y
+            .Select(v => Math.Pow(v - mean_y, 2))
+            .Sum() / n;
+
+        var sigma_ost = _serie.Y
+            .Zip(GetTrend().Y,
+            (y1, y2) => Math.Pow(y1 - y2, 2))
+            .Sum() / n;
+
+        var R = 1 - sigma_ost / sigma_fact;
+
+        return R / (1 - R) * (n - 2);
     }
 
     private int NumberOfSeries()
     {
-        var median = _medianCalculator.Calculate(_serie.Y);
+        var median = _medianCalculator.Calculate(_serie.Y.OrderBy(v => v));
 
         var boolMask = _serie.Y.Select(y => y >= median).ToList();
         var numberOfSeries = 1;
+
         for (int i = 0; i < boolMask.Count - 1; i++)
         {
             if (boolMask.ElementAt(i) != boolMask.ElementAt(i + 1))

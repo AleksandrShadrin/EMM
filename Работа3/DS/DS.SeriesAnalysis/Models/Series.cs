@@ -8,4 +8,13 @@ public class Serie
         X = x.ToList();
         Y = y.ToList();
     }
+
+    public Serie Copy()
+    {
+        return new Serie(
+            x: X.Select(v => v)
+                .ToList(),
+            y: Y.Select(v => v)
+                .ToList());
+    }
 }

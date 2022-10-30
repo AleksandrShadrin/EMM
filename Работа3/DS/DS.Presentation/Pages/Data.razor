@@ -1,0 +1,62 @@
+﻿@page "/data"
+@inject HttpClient _httpClient
+
+@if (rows.Count > 1)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                @foreach (var td in rows.First().Split(","))
+                {
+                    <td>@td</td>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var str in rows.Skip(1).Take(15).ToList())
+            {
+                <tr>
+                    @foreach (var td in str.Split(","))
+                    {
+                        <td>@td</td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (serie is { })
+{
+    <SerieChart Label="" Serie="serie" EquationType="SeriesAnalysis.Constants.EquationType.POLYNOMIAL" />
+    <SerieChart Label="" Serie="serie" EquationType="SeriesAnalysis.Constants.EquationType.EXPONENTIAL"/>
+    <SerieChart Label="" Serie="serie" EquationType="SeriesAnalysis.Constants.EquationType.LOGARITHMIC"/>
+}
+
+@code {
+    private List<string> rows = new();
+    private Serie serie;
+    private bool isFirstRender = true;
+
+    protected async override Task OnInitializedAsync()
+    {
+        if (isFirstRender)
+        {
+            var data = await _httpClient.GetStringAsync("Data/Microsoft_Stock2.csv");
+            rows = data.Split("\n").Where(str => !String.IsNullOrWhiteSpace(str)).ToList();
+
+            var x = Enumerable.Range(1, rows.Count - 1)
+                .Select(v => Convert.ToDouble(v));
+
+            var y = rows
+                .Skip(1)
+                .Select(str => Convert.ToDouble(str.Split(",")[1], System.Globalization.CultureInfo.InvariantCulture));
+
+            serie = new Serie(x, y);
+
+            isFirstRender = false;
+        }
+
+        await base.OnInitializedAsync();
+    }
+}

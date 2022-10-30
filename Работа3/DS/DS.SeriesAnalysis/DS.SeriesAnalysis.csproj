@@ -1,14 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<PackageId>DS.SeriesAnalysis</PackageId>
+		<Version>1.0.0</Version>
+		<Authors>Aleksandr</Authors>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="AV.Methods" Version="1.0.0" />
-    <PackageReference Include="MatrixDotNet" Version="0.0.7.3" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="AV.Methods" Version="1.0.0" />
+		<PackageReference Include="MatrixDotNet" Version="0.0.7.3" />
+	</ItemGroup>
 
 </Project>
