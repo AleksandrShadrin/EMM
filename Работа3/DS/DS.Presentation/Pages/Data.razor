@@ -1,4 +1,4 @@
-﻿@page "/data"
+﻿@page "/"
 @inject HttpClient _httpClient
 
 @if (rows.Count > 1)
@@ -28,15 +28,16 @@
 
 @if (serie is { })
 {
-    <SerieChart Label="" Serie="serie" EquationType="SeriesAnalysis.Constants.EquationType.POLYNOMIAL" />
-    <SerieChart Label="" Serie="serie" EquationType="SeriesAnalysis.Constants.EquationType.EXPONENTIAL"/>
-    <SerieChart Label="" Serie="serie" EquationType="SeriesAnalysis.Constants.EquationType.LOGARITHMIC"/>
+    <SerieChart Label="" Serie="serie" EquationType="SeriesAnalysis.Constants.EquationType.POLYNOMIAL" Labels="Labels" />
+    <SerieChart Label="" Serie="serie" EquationType="SeriesAnalysis.Constants.EquationType.EXPONENTIAL" Labels="Labels" />
+    <SerieChart Label="" Serie="serie" EquationType="SeriesAnalysis.Constants.EquationType.LOGARITHMIC" Labels="Labels"/>
 }
 
 @code {
     private List<string> rows = new();
     private Serie serie;
     private bool isFirstRender = true;
+    private List<string> Labels = new();
 
     protected async override Task OnInitializedAsync()
     {
@@ -53,6 +54,10 @@
                 .Select(str => Convert.ToDouble(str.Split(",")[1], System.Globalization.CultureInfo.InvariantCulture));
 
             serie = new Serie(x, y);
+
+            Labels = rows.Skip(1)
+                .Select(str => str.Split(",")[0])
+                .ToList();
 
             isFirstRender = false;
         }

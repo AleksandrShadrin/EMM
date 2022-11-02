@@ -62,12 +62,12 @@ public class SeriesAnalyzerService : ISeriesAnalyzerService
 
         var sigma_fact = _serie.Y
             .Select(v => Math.Pow(v - mean_y, 2))
-            .Sum() / n;
+            .Sum();
 
         var sigma_ost = _serie.Y
             .Zip(GetTrend().Y,
             (y1, y2) => Math.Pow(y1 - y2, 2))
-            .Sum() / n;
+            .Sum();
 
         var R = 1 - sigma_ost / sigma_fact;
 

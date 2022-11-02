@@ -3,7 +3,7 @@
 @inject ISeriesSmoothingService _seriesSmoothingService;
 
 <div class="flex-column justify-content-center">
-    <div class="row col-6 align-content-center mx-auto my-2"><h4 class="text-center m-0">Trend is exist ? @(trendExist) F фактическое = @F</h4></div>
+    <div class="row col-6 align-content-center mx-auto my-2"><h4 class="text-center m-0">Trend is exist ? @(trendExist), F фактическое = @F</h4></div>
     <div class="row col-6 justify-content-end mx-auto my-2"><button class="btn btn-primary" @onclick="SmoothSerieByThreePoints">Smooth serie by three points</button></div>
     <div class="row col-6 justify-content-end mx-auto my-2"><button class="btn btn-primary" @onclick="SmoothSerieByFivePoints">Smooth serie by five points</button></div>
     <div class="row col-6 justify-content-end mx-auto my-2"><button class="btn btn-primary" @onclick="RestoreSerie">Restore</button></div>
@@ -18,6 +18,9 @@
     public Serie Serie { get; set; }
     [Parameter]
     public EquationType EquationType { get; set; }
+    [Parameter]
+    public List<string> Labels { get; set; }
+
 
     private bool isFirstRender = true;
     private bool trendIsAdded = false;
@@ -37,10 +40,6 @@
             },
             Scales = new ChartScales
             {
-                X = new ChartAxis
-                {
-                    Type = "linear"
-                },
             }
         };
 
@@ -51,7 +50,7 @@
             isFirstRender = false;
 
             await lineChart.Clear();
-            await lineChart.AddDataSet(GenerateLineChartDataset(Serie));
+            await lineChart.AddLabelsDatasetsAndUpdate(Labels, GenerateLineChartDataset(Serie));
 
             _analyzerService.SetSerie(Serie);
             _analyzerService.Fit(Serie, EquationType);
@@ -69,7 +68,7 @@
                 BorderColor = borderColors[0],
                 Label = Label,
                 Data = serie.X.Zip(serie.Y, (x, y) => new PointXY(x, y)).ToList(),
-                PointRadius = 0,
+                PointRadius = 2,
                 Fill = false,
             };
     }
@@ -89,7 +88,7 @@
                 Label = "Trend",
                 Data = trend.X.Zip(trend.Y, (x, y) => new PointXY(x, y)).ToList(),
                 BorderWidth = 2,
-                PointRadius = 0,
+                PointRadius = 2,
                 Fill = false,
             };
 
@@ -98,24 +97,24 @@
 
     private async Task SmoothSerieByThreePoints()
     {
+        _seriesSmoothingService.SetSeriesSmootherType(SmoothType.SMOOTH_BY_THREE_POINTS);
+        var newSerie = _seriesSmoothingService.SmoothSerie(Serie);
+
         trendIsAdded = false;
 
-        _seriesSmoothingService.SetSeriesSmootherType(SmoothType.SMOOTH_BY_THREE_POINTS);
-
-        var newSerie = _seriesSmoothingService.SmoothSerie(Serie);
         await lineChart.Clear();
-        await lineChart.AddDataSet(GenerateLineChartDataset(newSerie));
+        await lineChart.AddLabelsDatasetsAndUpdate(Labels, GenerateLineChartDataset(newSerie));
     }
 
     private async Task SmoothSerieByFivePoints()
     {
+        _seriesSmoothingService.SetSeriesSmootherType(SmoothType.SMOOTH_BY_FIVE_POINTS);
+        var newSerie = _seriesSmoothingService.SmoothSerie(Serie);
+
         trendIsAdded = false;
 
-        _seriesSmoothingService.SetSeriesSmootherType(SmoothType.SMOOTH_BY_FIVE_POINTS);
-
-        var newSerie = _seriesSmoothingService.SmoothSerie(Serie);
         await lineChart.Clear();
-        await lineChart.AddDataSet(GenerateLineChartDataset(newSerie));
+        await lineChart.AddLabelsDatasetsAndUpdate(Labels, GenerateLineChartDataset(newSerie));
     }
 
     private async Task RestoreSerie()
@@ -123,7 +122,7 @@
         trendIsAdded = false;
 
         await lineChart.Clear();
-        await lineChart.AddDataSet(GenerateLineChartDataset(Serie));
+        await lineChart.AddLabelsDatasetsAndUpdate(Labels, GenerateLineChartDataset(Serie));
     }
 
     private record PointXY(double X, double Y);
